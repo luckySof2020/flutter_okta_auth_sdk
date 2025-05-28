@@ -31,29 +31,33 @@ class FlutterOktaAuthSdkPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         channel.setMethodCallHandler(null)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
-        try {
-            OktaClient.getWebClient().handleActivityResult(requestCode, resultCode, data)
-        } catch (_: Exception) {}
-        return PendingOperation.hasPendingOperation != null
-    }
-
     override fun onDetachedFromActivity() {
         this.mainActivity = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        binding.addActivityResultListener(this)
+        binding.addActivityResultListener { requestCode, resultCode, data ->
+            handleActivityResult(requestCode, resultCode, data)
+        }
         mainActivity = binding.activity
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        binding.addActivityResultListener(this)
+        binding.addActivityResultListener { requestCode, resultCode, data ->
+            handleActivityResult(requestCode, resultCode, data)
+        }
         mainActivity = binding.activity
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
         this.mainActivity = null
+    }
+
+    private fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        try {
+            OktaClient.getWebClient().handleActivityResult(requestCode, resultCode, data)
+        } catch (_: Exception) {}
+        return PendingOperation.hasPendingOperation != null
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
